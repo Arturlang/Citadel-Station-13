@@ -74,8 +74,10 @@
 			if(V.get_ability(/datum/vampire_passive/full))
 				sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
 				lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
-			else if(V.get_ability(/datum/vampire_passive/vision))
-				sight |= (SEE_MOBS)
+			else if(V.get_ability(/datum/vampire_passive/thermal_vision))
+				sight |= SEE_MOBS
+				lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
+			else if(V.get_ability(/obj/effect/proc_holder/spell/targeted/night_vision/vampire/))
 				lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 
 /mob/living/simple_animal/hostile/retaliate/bat/vampire_bat/death()
@@ -84,6 +86,7 @@
 		mind.transfer_to(controller)
 		controller.status_flags &= ~GODMODE
 		controller.adjustStaminaLoss(90)
-		controller.Knockdown(20)
+		controller.resting = FALSE
+		controller.lying = FALSE
 		to_chat(controller, "<span class='userdanger'>The force of being exiled from your bat form knocks you down!</span>")
 	. = ..()

@@ -644,11 +644,6 @@
 	flags_inv = HIDEJUMPSUIT
 	resistance_flags = NONE
 
-	/*
-		In this file:
-			various vampire interactions and items
-	*/
-
 //Vampire antag clothes.
 /obj/item/clothing/suit/hooded/vamp_coat
 	name = "vampire Coat"

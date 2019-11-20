@@ -951,15 +951,3 @@
 	if(mood)
 		if(mood.sanity < SANITY_UNSTABLE)
 			return TRUE
-
-/mob/living/carbon/update_sight()
-	. = ..()
-	if(mind)
-		var/datum/antagonist/vampire/V = mind.has_antag_datum(/datum/antagonist/vampire)
-		if(V)
-			if(V.get_ability(/datum/vampire_passive/full))
-				sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
-				lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE
-			else if(V.get_ability(/datum/vampire_passive/vision))
-				sight |= (SEE_MOBS)
-				lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_VISIBLE

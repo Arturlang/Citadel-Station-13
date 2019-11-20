@@ -22,18 +22,19 @@
 		/obj/effect/proc_holder/spell/self/rejuvenate = 0,
 		/obj/effect/proc_holder/spell/self/revive = 0, //So new vampires can revive themselves if they were turned while dead.
 		/obj/effect/proc_holder/spell/targeted/hypnotise = 0,
-		/datum/vampire_passive/vision = 175,
+		/obj/effect/proc_holder/spell/targeted/night_vision/vampire/ = 175,
 		/obj/effect/proc_holder/spell/self/shapeshift = 175,
 		/obj/effect/proc_holder/spell/self/cloak = 225,
 		/obj/effect/proc_holder/spell/targeted/disease = 275,
+		/datum/vampire_passive/thermal_vision = 300,
 		/obj/effect/proc_holder/spell/bats = 330,
-		/obj/effect/proc_holder/spell/self/batform = 300,
+		/obj/effect/proc_holder/spell/self/batform = 340,
 		/obj/effect/proc_holder/spell/self/screech = 380,
 		/datum/vampire_passive/regen = 425,
 		/obj/effect/proc_holder/spell/targeted/ethereal_jaunt/mistform = 500,
 		/datum/vampire_passive/full = 666,
 		/obj/effect/proc_holder/spell/self/summon_coat = 666,
-		/obj/effect/proc_holder/spell/targeted/vampirize = 666) //The number has a very specific meaning.
+		/obj/effect/proc_holder/spell/targeted/vampirize = 800)
 
 /datum/antagonist/vampire/get_admin_commands()
 	. = ..()
@@ -118,7 +119,6 @@
 
 /datum/antagonist/vampire/proc/add_objective(var/datum/objective/O)
 	objectives += O
-	owner.objectives += O
 
 /datum/antagonist/vampire/proc/forge_single_objective() //Returns how many objectives are added
 	.=1
@@ -344,5 +344,15 @@
 		SEND_SOUND(owner.current, 'sound/ambience/ambifailure.ogg')
 
 	return result.Join("<br>")
+
+/mob/living/carbon/update_sight()
+	. = ..()
+	if(mind)
+		var/datum/antagonist/vampire/V = mind.has_antag_datum(/datum/antagonist/vampire)
+		if(V)
+			if(V.get_ability(/datum/vampire_passive/full))
+				sight |= (SEE_TURFS|SEE_MOBS|SEE_OBJS)
+			else if(V.get_ability(/datum/vampire_passive/thermal_vision))
+				sight |= (SEE_MOBS)
 
 #undef ALL_POWERS_UNLOCKED
