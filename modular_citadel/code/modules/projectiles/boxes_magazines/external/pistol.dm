@@ -50,7 +50,7 @@
 	category = list("Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_SECURITY
 
-/datum/design/m45 //Kinda NT in theory
+/datum/design/m45 //Kinda NT in throey
 	name = "handgun magazine (.45)"
 	id = "m45"
 	build_type = PROTOLATHE
@@ -66,15 +66,5 @@
 	build_type = PROTOLATHE
 	materials = list(MAT_METAL = 80000)
 	build_path = /obj/item/ammo_box/magazine/pistolm9mm
-	category = list("Ammo")
-	departmental_flags = DEPARTMENTAL_FLAG_SECURITY
-
-/datum/design/sl357
-	name = "revolver speedloader (.357)"
-	desc = "A revolver speedloader."
-	id = "sl357"
-	build_type = PROTOLATHE
-	materials = list(MAT_METAL = 30000)
-	build_path = /obj/item/ammo_box/a357
 	category = list("Ammo")
 	departmental_flags = DEPARTMENTAL_FLAG_SECURITY

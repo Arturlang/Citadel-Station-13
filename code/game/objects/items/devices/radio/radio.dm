@@ -29,7 +29,6 @@
 	var/freqlock = FALSE  // Frequency lock to stop the user from untuning specialist radios.
 	var/use_command = FALSE  // If true, broadcasts will be large and BOLD.
 	var/command = FALSE  // If true, use_command can be toggled at will.
-	var/commandspan = SPAN_COMMAND //allow us to set what the fuck we want for headsets
 
 	// Encryption key handling
 	var/obj/item/encryptionkey/keyslot
@@ -207,7 +206,7 @@
 		return
 
 	if(use_command)
-		spans |= commandspan
+		spans |= SPAN_COMMAND
 
 	/*
 	Roughly speaking, radios attempt to make a subspace transmission (which
@@ -275,7 +274,7 @@
 	signal.levels = list(T.z)
 	signal.broadcast()
 
-/obj/item/radio/Hear(message, atom/movable/speaker, message_language, raw_message, radio_freq, list/spans, message_mode, atom/movable/source)
+/obj/item/radio/Hear(message, atom/movable/speaker, message_language, raw_message, radio_freq, list/spans, message_mode)
 	. = ..()
 	if(radio_freq || !broadcasting || get_dist(src, speaker) > canhear_range)
 		return
