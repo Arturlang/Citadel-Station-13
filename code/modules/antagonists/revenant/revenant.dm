@@ -26,8 +26,7 @@
 	spacewalk = TRUE
 	sight = SEE_SELF
 	throwforce = 0
-	blood_volume = 0
-	
+
 	see_in_dark = 8
 	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
 	response_help   = "passes through"
