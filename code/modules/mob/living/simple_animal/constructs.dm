@@ -304,6 +304,7 @@
 							/obj/effect/proc_holder/spell/aoe_turf/conjure/floor,
 							/obj/effect/proc_holder/spell/aoe_turf/conjure/soulstone/noncult,
 							/obj/effect/proc_holder/spell/aoe_turf/conjure/construct/lesser,
+							/obj/effect/proc_holder/spell/aoe_turf/conjure/hex,
 							/obj/effect/proc_holder/spell/targeted/projectile/magic_missile/lesser)
 
 
@@ -466,3 +467,93 @@
 			hud_used.healths.icon_state = "[icon_state]_health5"
 		else
 			hud_used.healths.icon_state = "[icon_state]_health6"
+
+/obj/item/weapon/melee/cultblade
+	name = "cult blade"
+	desc = "An arcane weapon wielded by the followers of Nar-Sie."
+	desc = "An arcane weapon wielded by the followers of Nar-Sie. It features a nice round socket at the base of its obsidian blade."
+	icon_state = "cultblade"
+	item_state = "cultblade"
+	flags = IS_SHARP
+	w_class = W_CLASS_LARGE
+	force = 30
+	throwforce = 10
+	attacktext = "slices"
+	hitsound = "sound/weapons/bladeslice.ogg"
+transfer_ckey(ghost, FALSE)
+
+/obj/item/weapon/melee/cultblade/attackby(obj/item/O, mob/user, params)
+	if(istype(O, /obj/item/soulstone))
+		var/obj/item/soulstone/SS = O
+		if(!iscultist(user, TRUE) && !iswizard(user) && !SS.usability)
+			to_chat(user, "<span class='danger'>An overwhelming feeling of dread comes over you as you attempt to place the soulstone into the blade. It would be wise to be rid of this quickly.</span>")
+			user.Dizzy(30)
+			return
+		var/turf/T = get_turf(src)
+		var/mob/living/simple_animal/hostile/construct/soulblade/newblade = new(T)
+		SS.transfer_ckey(newblade, FALSE)
+		SS.was_used()
+	else
+		return
+
+/mob/living/simple_animal/hostile/construct/soulblade
+	name = "soul blade"
+	desc = "An obsidian blade fitted with a soul gem, giving it life."
+	attacktext = "slices"
+	hitsound = "sound/weapons/bladeslice.ogg"
+	maxHealth = 50
+	health = 50
+	var/obj/item/soulstone/shade = null //shade inside it
+	var/blood = 0
+	var/maxregenblood = 10//the maximum amount of blood you can regen by waiting around.
+	var/maxblood = 100
+
+	health = 50
+	var/maxHealth = 50
+
+/obj/item/weapon/melee/soulblade/Destroy()
+	var/turf/T = get_turf(src)
+	if(T)
+		if(shade)
+			shade.forceMove(T)
+		else
+			qdel(shade)
+		var/obj/item/weapon/melee/cultblade/B = new(T)
+	shade = null
+	..()
+
+/mob/living/simple_animal/hostile/construct/soulblade/Process()
+	..()
+	if(maxregenblood >= blood)
+		blood++
+
+/mob/living/simple_animal/hostile/construct/soulblade/attack(atom/target)
+	if(!target.Adjacent(src) && blood > 5)
+		if(istype(target, /obj))
+			user.visible_message("<span class='notice'>[user] spins and charges at [target]!</span>", "<span class='notice'>You charge at [target]!</span>")
+			walk_towards(user,target,0.1,10)
+			var/turf/T = get_turf(target)
+			var/safety = 15
+			while((get_turf(user) != T) && (safety > 0) && !(target.Adjacent(user)))
+				sleep(1)
+				safety--
+				if(target.Adjacent(user))
+					if(istype(target, /obj))
+						var/obj/O = target
+							user.visible_message("<span class='notice'>[user] collides with [O]!</span>", "<span class='notice'>You collide with [O]!</span>")
+							..()
+	return ..()
+
+/mob/living/simple_animal/hostile/construct/hex
+	name = "Hex"
+	real_name = "Hex"
+	desc = "A small drone-like construct, floating in the air. It attacks hostiles that get near."
+	icon_state = "floating"
+	icon_living = "floating"
+	threat = 2
+	maxHealth = 25
+	health = 25
+	melee_damage_lower = 10
+	melee_damage_upper = 10
+	retreat_distance = 2
+	attacktext = "brutalizes"

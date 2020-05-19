@@ -13,3 +13,9 @@
 	healths = new /obj/screen/healths/construct()
 	healths.hud = src
 	infodisplay += healths
+
+/obj/screen/constructs/soulblade/blood_display
+	icon = 'icons/mob/screen_gen.dmi'
+	icon_state = "power_display2" //alien one for now, wip
+	name = "blood stored"
+	screen_loc = ui_alienplasmadisplay

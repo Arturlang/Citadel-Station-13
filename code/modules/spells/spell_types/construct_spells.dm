@@ -320,3 +320,19 @@
 			O.take_damage(90, BRUTE, "melee", 0)
 			new /obj/effect/temp_visual/cult/turf/floor
 	..()
+
+/obj/effect/proc_holder/spell/aoe_turf/conjure/hex
+	name = "Summon Hex"
+	desc = "This spell reaches into Nar'Sie's realm, summoning a Hex, a small autonomous construct that defends the area."
+
+	school = "conjuration"
+	charge_max = 2400
+	clothes_req = NONE
+	invocation = "none"
+	invocation_type = "none"
+	range = 0
+	action_icon = 'icons/mob/actions/actions_cult.dmi'
+	action_icon_state = "summonsoulstone"
+	action_background_icon_state = "bg_demon"
+
+	summon_type = list(/mob/living/simple_animal/hostile/construct/hex)
