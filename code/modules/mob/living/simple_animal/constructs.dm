@@ -139,6 +139,7 @@
 	runetype = /datum/action/innate/cult/create_rune/wall
 	playstyle_string = "<b>You are a Juggernaut. Though slow, your shell can withstand heavy punishment, \
 						create shield walls, rip apart enemies and walls alike, and even deflect energy weapons.</b>"
+	var/chargeready = FALSE
 
 /mob/living/simple_animal/hostile/construct/armored/hostile //actually hostile, will move around, hit things
 	AIStatus = AI_ON
@@ -173,7 +174,14 @@
 
 	return ..()
 
-
+/mob/living/simple_animal/hostile/construct/juggernaut/attack(atom/target)
+	if(!target.Adjacent(src) && chargeready)
+		if(istype(target, /obj))
+			visible_message("<span class='notice'>[user] stops in place briefly, before charging at [target]!</span>", "<span class='notice'>You charge at [target]!</span>")
+			throw_at(target, 14, 14,)
+			visible_message("<span class='notice'>[user] collides with [O]!</span>", "<span class='notice'>You collide with [O]!</span>")
+			..()
+	return ..()
 
 ////////////////////////Wraith/////////////////////////////////////////////
 /mob/living/simple_animal/hostile/construct/wraith
@@ -530,8 +538,8 @@ transfer_ckey(ghost, FALSE)
 /mob/living/simple_animal/hostile/construct/soulblade/attack(atom/target)
 	if(!target.Adjacent(src) && blood > 5)
 		if(istype(target, /obj))
-			user.visible_message("<span class='notice'>[user] spins and charges at [target]!</span>", "<span class='notice'>You charge at [target]!</span>")
-			walk_towards(user,target,0.1,10)
+			visible_message("<span class='notice'>[user] spins and charges at [target]!</span>", "<span class='notice'>You charge at [target]!</span>")
+			walk_towards(src,target,0.1,10)
 			var/turf/T = get_turf(target)
 			var/safety = 15
 			while((get_turf(user) != T) && (safety > 0) && !(target.Adjacent(user)))
@@ -540,7 +548,7 @@ transfer_ckey(ghost, FALSE)
 				if(target.Adjacent(user))
 					if(istype(target, /obj))
 						var/obj/O = target
-							user.visible_message("<span class='notice'>[user] collides with [O]!</span>", "<span class='notice'>You collide with [O]!</span>")
+							visible_message("<span class='notice'>[user] collides with [O]!</span>", "<span class='notice'>You collide with [O]!</span>")
 							..()
 	return ..()
 

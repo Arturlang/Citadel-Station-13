@@ -321,6 +321,28 @@
 			new /obj/effect/temp_visual/cult/turf/floor
 	..()
 
+/obj/effect/proc_holder/spell/toggledash
+	name = "Unstoppable Force"
+	desc = "Channels energy, causing you to charge at the next location you attack."
+	proj_icon_state = "cultfist"
+	proj_name = "gauntlet echo"
+	charge_max = 700
+	clothes_req = NONE
+	action_icon = 'icons/mob/actions/actions_cult.dmi'
+	action_icon_state = "cultfist"
+	action_background_icon_state = "bg_demon"
+	sound = 'sound/weapons/resonator_blast.ogg'
+	ignore_factions = list("cult")
+	check_holy = TRUE
+
+/obj/effect/proc_holder/spell/toggledash(mob/user)
+	if(!istype(user, /mob/living/simple_animal/hostile/construct/juggernaut))
+		return
+	/mob/living/simple_animal/hostile/construct/juggernaut/J = user
+	if(J.chargeready)
+		return
+	J.chargeready = TRUE
+
 /obj/effect/proc_holder/spell/aoe_turf/conjure/hex
 	name = "Summon Hex"
 	desc = "This spell reaches into Nar'Sie's realm, summoning a Hex, a small autonomous construct that defends the area."
