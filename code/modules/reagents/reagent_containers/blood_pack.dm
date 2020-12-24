@@ -104,10 +104,12 @@
 		return ..()
 
 /obj/item/reagent_containers/blood/attack(mob/living/carbon/C, mob/user, def_zone)
-	if(user.a_intent == INTENT_HELP && reagents.total_volume > 0 && iscarbon(C) && user.a_intent == INTENT_HELP)
+	var/drinking
+	if(user.a_intent == INTENT_HELP && reagents.total_volume > 0 && iscarbon(C) && user.a_intent == INTENT_HELP && !drinking)
 		if(C.is_mouth_covered())
 			to_chat(user, "<span class='notice'>You cant drink from the [src] while your mouth is covered.</span>")
 			return
+		drinking = TRUE
 		if(user != C)
 			user.visible_message("<span class='danger'>[user] forces [C] to drink from the [src].</span>", \
 			"<span class='notice'>You force [C] to drink from the [src]</span>")
@@ -125,7 +127,7 @@
 		var/fraction = min(gulp_size / reagents.total_volume, 1)
 		reagents.reaction(C, INGEST, fraction) 	//checkLiked(fraction, M) // Blood isn't food, sorry.
 		reagents.trans_to(C, gulp_size)
-		reagents.remove_reagent(src, 2) //Inneficency, so hey, IVs are usefull.
+		reagents.remove_reagent(src, 4) //Inneficency, so hey, IVs are usefull.
 		playsound(C.loc,'sound/items/drink.ogg', rand(10, 50), TRUE)
 		return
 	..()
