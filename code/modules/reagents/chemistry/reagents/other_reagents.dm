@@ -53,11 +53,14 @@
 				if(2 >= B.bloodsucker_level) //Raw blood not in people is untasty for older bloodsuckers
 					disgust_bloodsucker(L, 3, FALSE, FALSE, FALSE)
 					return
-			C.blood_volume = min(C.blood_volume + round(reac_volume, 0.1), BLOOD_VOLUME_MAXIMUM * C.blood_ratio)
+			AddBlood(C)
 			// we don't care about bloodtype here, we're just refilling the mob
 
 	if(reac_volume >= 10 && istype(L) && method != INJECT)
 		L.add_blood_DNA(list(data["blood_DNA"] = data["blood_type"]))
+
+/datum/reagent/blood/proc/AddBlood(mob/living/carbon/C)
+	return C.blood_volume = min(C.blood_volume + round(reac_volume, 0.1), BLOOD_VOLUME_MAXIMUM * C.blood_ratio)
 
 /datum/reagent/blood/on_mob_life(mob/living/carbon/C)	//Because lethals are preferred over stamina. damnifino.
 	var/blood_id = C.get_blood_id()
@@ -186,6 +189,53 @@
 		M.heal_bodypart_damage(2*REM)
 		. = 1
 	..()
+
+//Bloodsucker Vitae
+/datum/reagent/blood/bloodsucker
+	taste_description = "ash"
+	taste_mult = 10
+	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
+
+/datum/reagent/blood/bloodsucker/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
+	if(!L.mind && data["donor"] != null)
+		return ..()
+	if(!Ambloodsucker(data["donor"]))
+		return ..()
+	if(AmBloodsucker(L) && iscarbon(L))
+		var/mob/living/carbon/C = L
+		AddBlood(C)
+	if(!Amvassal(L) && method == INGEST && !addiction_stage && 5 =< reac_volume)
+		addiction_stage = 1 //We would use addiction_threshold if not for these special requirements
+		addiction_list.Add(src)
+		return
+
+/datum/reagent/blood/bloodsucker/on_mob_life(mob/living/carbon/C)
+	if(!C.mind)
+		return ..()
+	if(AmVassal(C) || AmBloodsucker(C) && C != data["donor"])
+		metabolization_rate = 0.2 * REAGENTS_METABOLISM
+		C.heal_overall_damage(5, 5 , 10, FALSE, FALSE)
+		if(!C.jitteriness)
+			C.jitteriness += 2
+	else
+		..()
+
+/datum/reagent/blood/bloodsucker/on_mob_metabolize(mob/living/L)
+	if(!L && !L.mind)
+		return
+	if(AmVassal(L) || AmBloodsucker(B) && data["donor"] != L) //A reason for diableria AND vassal-master interaction
+		to_chat(V, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
+
+/datum/reagent/blood/bloodsucker/addiction_act_stage1(mob/living/M)
+
+
+/datum/reagent/blood/bloodsucker/addiction_act_stage2(mob/living/M)
+
+
+/datum/reagent/blood/bloodsucker/addiction_act_stage3(mob/living/M)
+
+
+/datum/reagent/blood/bloodsucker/addiction_act_stage4(mob/living/M)
 
 /datum/reagent/liquidgibs
 	name = "Liquid gibs"

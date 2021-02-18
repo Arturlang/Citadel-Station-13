@@ -18,6 +18,20 @@
 		return FALSE
 	return TRUE
 
+/proc/AmVassal(mob/living/M, falseIfInDisguise = FALSE, mob/living/master)
+	if(!M.mind)
+		return FALSE
+	if(master)
+		if(!master.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER))
+			return FALSE
+		var/datum/antagonist/vassal/V = M.mind.has_antag_datum(ANTAG_DATUM_VASSAL)
+		if(V.master.owner != master)
+			return FALSE
+	// No Datum
+	if(!M.mind.has_antag_datum(ANTAG_DATUM_VASSAL))
+		return FALSE
+	return TRUE
+
 /datum/game_mode/bloodsucker
 	name = "bloodsucker"
 	config_tag = "bloodsucker"
