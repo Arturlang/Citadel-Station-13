@@ -388,6 +388,11 @@ GLOBAL_VAR_INIT(dynamic_forced_storyteller, null)
 			if ("Midround")
 				if (ruleset.weight)
 					midround_rules += ruleset
+		var/list/probabilities = Get(/datum/config_entry/keyed_list/probability)
+		for(var/x in ruleset) //If the gamemode's set to 0 chance for the normal gamemode config, we removed it from the rulesets here
+			if(probabilities && probabilities[antag_flag] = 0)
+				ruleset =- x
+
 	for(var/mob/dead/new_player/player in GLOB.player_list)
 		if(player.ready == PLAYER_READY_TO_PLAY && player.mind)
 			roundstart_pop_ready++

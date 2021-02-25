@@ -75,6 +75,7 @@ ALERT_DELTA Destruction of the station is imminent. All crew are instructed to o
 ## Probablities for game modes chosen in 'secret' and 'random' modes.
 ## Default probablity is 1, increase to make that mode more likely to be picked.
 ## Set to 0 to disable that mode.
+## Also affects whether or not dynamic can run a gamemode antagonist or not
 
 PROBABILITY TRAITOR 5
 PROBABILITY TRAITORBRO 2
