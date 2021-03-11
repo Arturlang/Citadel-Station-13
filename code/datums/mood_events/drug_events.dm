@@ -113,3 +113,20 @@
 
 /datum/mood_event/MissingLove/add_effects(message)
 	description = "<span class='warning'>[message]</span>\n"
+
+/datum/mood_event/vitae_addiction_start
+	mood_change = 20
+
+/datum/mood_event/withdrawal_light/add_effects()
+	description = "<span class='nicegreen'>You feel ecstatic!</span>\n"
+
+/datum/mood_event/vitae_addiction_need
+
+/datum/mood_event/vitae_addiction_need/add_effects()
+	description = "<span class='warning'>Not enough, never enough, you MUST get more!</span>\n"
+
+/datum/mood_event/vitae_addiction_ready
+
+
+/datum/mood_event/vitae_addiction_ready/add_effects(mob/master)
+	description = "<span class='warning'>You feel your body failing you. You're not sure you can live through without [master.name]'s blood.' </span>\n"

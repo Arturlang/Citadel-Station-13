@@ -59,7 +59,7 @@
 	if(reac_volume >= 10 && istype(L) && method != INJECT)
 		L.add_blood_DNA(list(data["blood_DNA"] = data["blood_type"]))
 
-/datum/reagent/blood/proc/AddBlood(mob/living/carbon/C)
+/datum/reagent/blood/proc/AddBlood(mob/living/carbon/C, reac_volume)
 	return C.blood_volume = min(C.blood_volume + round(reac_volume, 0.1), BLOOD_VOLUME_MAXIMUM * C.blood_ratio)
 
 /datum/reagent/blood/on_mob_life(mob/living/carbon/C)	//Because lethals are preferred over stamina. damnifino.
@@ -191,25 +191,37 @@
 	..()
 
 //Bloodsucker Vitae
-/datum/reagent/blood/bloodsucker
-	taste_description = "ash"
+/datum/reagent/blood/vitae
+	taste_description = "honeyed ash"
 	taste_mult = 10
 	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
+	addiction_stage3_end = 100 //Just for that extra suffering
+	var/punch_boosted
 
-/datum/reagent/blood/bloodsucker/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
+/datum/reagent/blood/vitae/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
+	addiction_threshold = 0
 	if(!L.mind && data["donor"] != null)
 		return ..()
-	if(!Ambloodsucker(data["donor"]))
+	var/mob/living/donor = data["donor"]
+	var/datum/antagonist/bloodsucker/B = donor.mind
+	if(!AmBloodsucker(data["donor"]))
 		return ..()
 	if(AmBloodsucker(L) && iscarbon(L))
 		var/mob/living/carbon/C = L
 		AddBlood(C)
-	if(!Amvassal(L) && method == INGEST && !addiction_stage && 5 =< reac_volume)
-		addiction_stage = 1 //We would use addiction_threshold if not for these special requirements
-		addiction_list.Add(src)
+		return
+	if(!AmVassal(L) && method == INGEST && !addiction_stage && reac_volume >= 5)
+		addiction_threshold = 5
 		return
 
-/datum/reagent/blood/bloodsucker/on_mob_life(mob/living/carbon/C)
+	if(addiction_stage == 3 && B.attempt_turn_vassal(L))
+
+	if(addiction_stage < 0)
+		addiction_stage = 1
+		addiction_stage1_end += reac_volume
+
+
+/datum/reagent/blood/vitae/on_mob_life(mob/living/carbon/C)
 	if(!C.mind)
 		return ..()
 	if(AmVassal(C) || AmBloodsucker(C) && C != data["donor"])
@@ -220,22 +232,67 @@
 	else
 		..()
 
-/datum/reagent/blood/bloodsucker/on_mob_metabolize(mob/living/L)
+/datum/reagent/blood/vitae/on_mob_delete(mob/living/L)
+	L.clear_fullscreen("critvision")
+	if(!HAS_TRAIT_FROM(L, TRAIT_STUNIMMUNE, "vitaeaddict"))
+		REMOVE_TRAIT(L, TRAIT_STUNIMMUNE, "vitaeaddict")
+	if(!HAS_TRAIT_FROM(L, TRAIT_PUSHIMMUNE, "vitaeaddict"))
+		REMOVE_TRAIT(L, TRAIT_PUSHIMMUNE, "vitaeaddict")
+	if(punch_boosted)
+		punch_boosted = FALSE
+		C.dna.species.punchdamagehigh -= 10
+		C.dna.species.punchdamagelow -= 10
+	..()
+
+
+/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
 	if(!L && !L.mind)
 		return
-	if(AmVassal(L) || AmBloodsucker(B) && data["donor"] != L) //A reason for diableria AND vassal-master interaction
-		to_chat(V, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
+	if(AmVassal(L) || AmBloodsucker(L) && data["donor"] != L) //A reason for diableria AND vassal-master interaction
+		to_chat(L, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
 
-/datum/reagent/blood/bloodsucker/addiction_act_stage1(mob/living/M)
+/datum/reagent/blood/vitae/addiction_act_stage1(mob/living/M) //The first sip is always the best.
+	M.overlay_fullscreen("vitaeaddict", /obj/screen/fullscreen/crit/vision, visionseverity)
+	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_start)
+	M.heal_overall_damage(10, 10 , 20, FALSE, FALSE)
+	if(!HAS_TRAIT_FROM(M, TRAIT_STUNIMMUNE, "vitaeaddict"))
+		ADD_TRAIT(M, TRAIT_STUNIMMUNE, "vitaeaddict")
+	if(!HAS_TRAIT_FROM(M, TRAIT_PUSHIMMUNE, "vitaeaddict"))
+		ADD_TRAIT(M, TRAIT_PUSHIMMUNE, "vitaeaddict")
+	if(iscarbon(M))
+		var/mob/living/carbon/C = M
+		if(C.handcuffed)
+			var/obj/O = user.get_item_by_slot(SLOT_HANDCUFFED)
+			qdel(O)
+			visible_message(C, user.visible_message("<span class='warning'>[user] breaks the [user.p_their()] [O] with their bare hands!</span>", \
+			"<span class='warning'>You break the [O] with your newfound strenght!</span>"))
+		if(!punch_boosted)
+			punch_boosted = TRUE
+			C.dna.species.punchdamagehigh += 10
+			C.dna.species.punchdamagelow += 10
+		if(!C.jitteriness)
+			C.jitteriness += 2
 
+/datum/reagent/blood/vitae/addiction_act_stage2(mob/living/M)
+	M.heal_overall_damage(5, 5 , 10, FALSE, FALSE)
+	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_need)
+	if(!HAS_TRAIT_FROM(M, TRAIT_STUNIMMUNE, "vitaeaddict"))
+		ADD_TRAIT(M, TRAIT_STUNIMMUNE, "vitaeaddict")
+	if(!HAS_TRAIT_FROM(M, TRAIT_PUSHIMMUNE, "vitaeaddict"))
+		ADD_TRAIT(M, TRAIT_PUSHIMMUNE, "vitaeaddict")
+	if(iscarbon(M))
+		var/mob/living/carbon/C = M
+		if(!C.jitteriness)
+			C.jitteriness += 3
 
-/datum/reagent/blood/bloodsucker/addiction_act_stage2(mob/living/M)
-
-
-/datum/reagent/blood/bloodsucker/addiction_act_stage3(mob/living/M)
-
-
-/datum/reagent/blood/bloodsucker/addiction_act_stage4(mob/living/M)
+/datum/reagent/blood/vitae/addiction_act_stage3(mob/living/M)
+	var/master = data["donor"]
+	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_ready, master)
+	if(prob(10))
+		M.DefaultCombatKnockdown(20)
+		to_chat(M, "<span class='warning'>Your body cramps up</span>")
+	M.adjustToxLoss(1, forced = TRUE)
+	M.AdjustBloodVol(-1)
 
 /datum/reagent/liquidgibs
 	name = "Liquid gibs"
