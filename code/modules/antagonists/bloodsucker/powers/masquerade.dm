@@ -44,7 +44,7 @@
 	var/mob/living/user = owner
 	var/datum/antagonist/bloodsucker/bloodsuckerdatum = user.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 
-	to_chat(user, "<span class='notice'>Your heart beats falsely within your lifeless chest. You may yet pass for a mortal.</span>")
+	to_chat(user, "<span class='notice'>Your heart beats falsely within your lifeless chest and you force yourself to breathe. You may yet pass for a mortal.</span>")
 	to_chat(user, "<span class='warning'>Your vampiric healing is halted while imitating life.</span>")
 
 
@@ -90,7 +90,7 @@
 
 	var/datum/antagonist/bloodsucker/bloodsuckerdatum = user.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 	bloodsuckerdatum.poweron_masquerade = FALSE
-
+	user.oxyloss = 0
 	ADD_TRAIT(user, TRAIT_COLDBLOODED, "bloodsucker")
 	ADD_TRAIT(user, TRAIT_NOHARDCRIT, "bloodsucker")
 	ADD_TRAIT(user, TRAIT_NOSOFTCRIT, "bloodsucker")

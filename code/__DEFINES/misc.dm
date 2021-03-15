@@ -160,6 +160,7 @@ GLOBAL_LIST_EMPTY(bloody_footprints_cache)
 #define BLOOD_COLOR_UNIVERSAL		"#db3300"
 #define BLOOD_COLOR_BUG				"#a37c0f"
 #define BLOOD_COLOR_PLANT			"#3d610e"
+#define BLOOD_COLOR_VITAE			"#800505"
 
 
 //suit sensors: sensor_mode defines

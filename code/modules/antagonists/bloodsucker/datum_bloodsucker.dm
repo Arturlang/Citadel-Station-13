@@ -204,8 +204,9 @@
 		H.physiology.cold_mod = 0
 		H.physiology.stun_mod *= 0.5
 		H.physiology.siemens_coeff *= 0.75 	//base electrocution coefficient  1
-		S.punchdamagelow += 1       //lowest possible punch damage   0
-		S.punchdamagehigh += 1      //highest possible punch damage	 9
+		S.punchdamagelow += 2      //lowest possible punch damage   0
+		S.punchdamagehigh += 2      //highest possible punch damage	 9
+		S.exotic_blood = /datum/reagent/blood/vitae
 		if(istype(H) && owner.assigned_role == "Clown")
 			H.dna.remove_mutation(CLOWNMUT)
 			to_chat(H, "As a vampiric clown, you are no longer a danger to yourself. Your nature is subdued.")

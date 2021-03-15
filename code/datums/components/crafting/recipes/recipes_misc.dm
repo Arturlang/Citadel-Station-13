@@ -80,30 +80,6 @@
 	category = CAT_MISC
 	always_availible = TRUE
 
-/datum/crafting_recipe/bloodsucker/vassalrack
-	name = "Persuasion Rack"
-	//desc = "For converting crewmembers into loyal Vassals."
-	result = /obj/structure/bloodsucker/vassalrack
-	tools = list(/obj/item/weldingtool,
-				 	//obj/item/screwdriver,
-					/obj/item/wrench
-					 )
-	reqs = list(/obj/item/stack/sheet/mineral/wood = 3,
-				/obj/item/stack/sheet/metal = 2,
-				/obj/item/restraints/handcuffs/cable = 2,
-				//obj/item/storage/belt = 1,
-				//obj/item/stack/sheet/animalhide = 1,
-				//obj/item/stack/sheet/leather = 1,
-				//obj/item/stack/sheet/plasteel = 5
-				)
-		//parts = list(/obj/item/storage/belt = 1
-		//			 )
-	time = 150
-	subcategory = CAT_MISCELLANEOUS
-	category = CAT_MISC
-	always_availible = FALSE	// Disabled until learned
-
-
 /datum/crafting_recipe/bloodsucker/candelabrum
 	name = "Candelabrum"
 	//desc = "For converting crewmembers into loyal Vassals."

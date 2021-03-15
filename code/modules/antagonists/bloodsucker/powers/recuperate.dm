@@ -2,12 +2,13 @@
 
 /datum/action/bloodsucker/recuperate
 	name = "Recuperate"
-	desc = "Recover from debilitating effects quickly or wake up from torpor. Costs 100 more blood to wake you up."
+	desc = "Recover from debilitating effects quickly or wake up from torpor, however recovering from torpor costs a lot more blood."
 	button_icon_state = "power_recup"
-	bloodcost = 50
+	bloodcost = 20
 	cooldown = 30
 	cooldown_static = TRUE
 	can_use_in_torpor = TRUE
+	must_be_concious = FALSE
 
 /datum/action/bloodsucker/recuperate/ActivatePower()
 	var/datum/antagonist/bloodsucker/B = owner.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
@@ -30,7 +31,7 @@
 			B.AddBloodVolume(-100)
 		return
 	L.adjustFireLoss(L.staminaloss * 0.2) //So we can't spam it forever
-	L.do_adrenaline(healing_chems = null, stamina_buffer_boost = 50)
+	L.do_adrenaline(healing_chems = FALSE, stamina_buffer_boost = 50)
 	to_chat(owner, "<span class='notice'>The power of your blood gives you newfound vitality!</span>")
 
 /datum/action/bloodsucker/recuperate/proc/NormalizeCooldown()

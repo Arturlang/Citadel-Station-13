@@ -91,10 +91,10 @@
 		var/fireheal = 0 	// BURN: Heal in Coffin while Fakedeath, or when damage above maxhealth (you can never fully heal fire)
 			// Check for mult 0 OR death coma. (mult 0 means we're testing from coffin)
 		if(istype(C.loc, /obj/structure/closet/crate/coffin) && (mult == 0 || HAS_TRAIT(C, TRAIT_FAKEDEATH)))
-			mult *= 4 // Increase multiplier if we're sleeping in a coffin.
-			fireheal = min(C.getFireLoss(), regen_rate) // NOTE: Burn damage ONLY heals in torpor.
+			mult *= 10 // Increase multiplier if we're sleeping in a coffin.
+			fireheal = min(C.getFireLoss(), actual_regen) // NOTE: Burn damage ONLY heals in torpor.
 			C.ExtinguishMob()
-			CureDisabilities() 	// Extinguish Fire
+			CureDisabilities()
 			C.remove_all_embedded_objects() // Remove Embedded!
 			C.adjustAllOrganLoss(100)
 			CheckVampOrgans() // Heart, Eyes
@@ -103,7 +103,7 @@
 				return TRUE
 		else if(owner.current.stat >= UNCONSCIOUS) //Faster regeneration and slight burn healing while unconcious
 			mult *= 2
-			fireheal = min(C.getFireLoss(), regen_rate * 0.5)
+			fireheal = min(C.getFireLoss(), actual_regen * 0.5 / mult)
 
 		// BRUTE: Always Heal
 		var/bruteheal = min(C.getBruteLoss(), actual_regen)
@@ -150,6 +150,9 @@
 	C.set_blurriness(0)
 	C.update_tint()
 	C.update_sight()
+	for(var/thing in C.all_wounds)
+		var/datum/wound/W = thing
+		W.remove_wound()
 	for(var/O in C.internal_organs)
 		var/obj/item/organ/organ = O
 		organ.setOrganDamage(0)
