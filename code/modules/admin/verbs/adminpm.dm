@@ -113,12 +113,6 @@
 			to_chat(src, "<span class='danger'>Error: Use the admin IRC/Discord channel, nerd.</span>", confidential = TRUE)
 			return
 
-	//clean the message if it's not sent by a high-rank admin
-	if(!check_rights(R_SERVER|R_DEBUG,0)||external)//no sending html to the poor bots
-		msg = sanitize(copytext_char(msg, 1, MAX_MESSAGE_LEN))
-		if(!msg)
-			return
-
 	else
 		//get message text, limit it's length.and clean/escape html
 		if(!msg)
@@ -133,11 +127,16 @@
 			else
 				if(holder)
 					to_chat(src, "<span class='danger'>Error: Admin-PM: Client not found.</span>", confidential = TRUE)
-					to_chat(src, "<span class='danger'><b>Message not sent:</b></span><br>[msg]", confidential = TRUE)
+					to_chat(src, "<span class='danger'><b>Message not sent:</b></span><br>[sanitize(msg)]", confidential = TRUE)
 					if(recipient_ticket)
 						recipient_ticket.AddInteraction("<b>No client found, message not sent:</b><br>[msg]")
 					return
 				else
+					//clean the message if it's not sent by a high-rank admin
+					if(!check_rights(R_SERVER|R_DEBUG,0)||external)//no sending html to the poor bots
+						msg = sanitize(copytext_char(msg, 1, MAX_MESSAGE_LEN))
+						if(!msg)
+							return
 					current_ticket.MessageNoRecipient(msg)
 					return
 
@@ -148,6 +147,12 @@
 
 	if(src.handle_spam_prevention(msg,MUTE_ADMINHELP))
 		return
+
+	//clean the message if it's not sent by a high-rank admin
+	if(!check_rights(R_SERVER|R_DEBUG,0)||external)//no sending html to the poor bots
+		msg = sanitize(copytext_char(msg, 1, MAX_MESSAGE_LEN))
+		if(!msg)
+			return
 
 	var/rawmsg = msg
 
@@ -160,7 +165,7 @@
 		to_chat(src, "<span class='notice'>PM to-<b>Admins</b>: <span class='linkify'>[rawmsg]</span></span>", confidential = TRUE)
 		var/datum/admin_help/AH = admin_ticket_log(src, "<font color='red'>Reply PM from-<b>[key_name(src, TRUE, TRUE)]</b> to <i>External</i>: [keywordparsedmsg]</font>")
 		ircreplyamount--
-		send2irc("[AH ? "#[AH.id] " : ""]Reply: [ckey]", rawmsg)
+		send2adminchat("[AH ? "#[AH.id] " : ""]Reply: [ckey]", rawmsg)
 
 	else
 		var/badmin = FALSE //Lets figure out if an admin is getting bwoinked.
