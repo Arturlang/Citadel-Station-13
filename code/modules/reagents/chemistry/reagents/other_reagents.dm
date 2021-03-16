@@ -207,7 +207,7 @@
 		return ..()
 	var/mob/living/donor = data["donor"]
 	var/datum/antagonist/bloodsucker/B = donor.mind
-	if(!AmBloodsucker(donor)
+	if(!AmBloodsucker(donor))
 		return ..()
 	if(AmBloodsucker(L) && iscarbon(L))
 		var/mob/living/carbon/C = L

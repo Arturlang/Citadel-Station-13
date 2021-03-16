@@ -24,14 +24,14 @@
 	else if(user.hal_screwyhud == 5)
 		icon_state = "stamina0"
 	else
-		icon_state = "stamina[clamp(FLOOR(user.getStaminaLosstotal() /20, 1), 0, 6)]"
+		icon_state = "stamina[clamp(FLOOR(user.getStaminaLoss() /20, 1), 0, 6)]"
 
 /obj/screen/staminas/update_overlays()
 	. = ..()
 	var/mob/living/carbon/user = hud?.mymob
 	if(!user)
 		return
-	var/percent = user.getStaminaLosstotal() / STAMINA_CRIT
+	var/percent = user.getStaminaLoss() / STAMINA_CRIT
 	if((user.stat == DEAD) || (user.combat_flags & COMBAT_FLAG_HARD_STAMCRIT) || (user.hal_screwyhud in 1 to 2))
 		. += list("stamina_alert3")
 	else if(percent >= 0.85)

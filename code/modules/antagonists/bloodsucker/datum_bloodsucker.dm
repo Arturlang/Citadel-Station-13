@@ -183,7 +183,7 @@
 	BuyPower(new /datum/action/bloodsucker/recuperate)
 	// Traits
 	for(var/T in defaultTraits)
-		ADD_TRAIT(owner.current, T, BLOODSUCKER_TRAIT)
+		ADD_TRAIT(owner.current, T, ANTAG_TRAIT)
 	if(HAS_TRAIT(owner.current, TRAIT_TOXINLOVER)) //No slime bonuses here, no thank you
 		had_toxlover = TRUE
 		REMOVE_TRAIT(owner.current, TRAIT_TOXINLOVER, SPECIES_TRAIT)
@@ -230,7 +230,7 @@
 		// owner.RemoveSpell(power)
 	// Traits
 	for(var/T in defaultTraits)
-		REMOVE_TRAIT(owner.current, T, BLOODSUCKER_TRAIT)
+		REMOVE_TRAIT(owner.current, T, ANTAG_TRAIT)
 	if(had_toxlover)
 		ADD_TRAIT(owner.current, TRAIT_TOXINLOVER, SPECIES_TRAIT)
 
