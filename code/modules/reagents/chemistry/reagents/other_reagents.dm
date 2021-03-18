@@ -194,18 +194,20 @@
 /datum/reagent/blood/vitae
 	taste_description = "honeyed ash"
 	data = list("donor"=null,"viruses"=null,"blood_DNA"=null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type"= null,"resistances"=null,"trace_chem"=null,"mind"=null,"ckey"=null,"gender"=null,"real_name"=null,"cloneable"=null,"factions"=null,"quirks"=null)
-	name = "I'M BAD BOY BLOOD"
 	taste_mult = 10
 	color = BLOOD_COLOR_VITAE
 	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
 	addiction_stage3_end = 100 //Just for that extra suffering
 	var/punch_boosted
+	var/mob/living/donor
+
+/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
+	donor = data["donor"]
 
 /datum/reagent/blood/vitae/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
 	addiction_threshold = 0
-	if(!L.mind && data["donor"] != null)
+	if(!L.mind && !donor)
 		return ..()
-	var/mob/living/donor = data["donor"]
 	var/datum/antagonist/bloodsucker/B = donor.mind
 	if(!AmBloodsucker(donor))
 		return ..()
@@ -227,7 +229,7 @@
 /datum/reagent/blood/vitae/on_mob_life(mob/living/carbon/C)
 	if(!C.mind)
 		return ..()
-	if(AmVassal(C) || AmBloodsucker(C) && C != data["donor"])
+	if(AmVassal(C) || AmBloodsucker(C) && C != donor)
 		metabolization_rate = 0.2 * REAGENTS_METABOLISM
 		C.heal_overall_damage(5, 5 , 10, FALSE, FALSE)
 		if(!C.jitteriness)
@@ -252,7 +254,7 @@
 /datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
 	if(!L && !L.mind)
 		return
-	if(AmVassal(L) || AmBloodsucker(L) && data["donor"] != L) //A reason for diableria AND vassal-master interaction
+	if(AmVassal(L) || AmBloodsucker(L) && donor != L) //A reason for diableria AND vassal-master interaction
 		to_chat(L, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
 
 /datum/reagent/blood/vitae/addiction_act_stage1(mob/living/M) //The first sip is always the best.
@@ -290,8 +292,7 @@
 			C.jitteriness += 3
 
 /datum/reagent/blood/vitae/addiction_act_stage3(mob/living/M)
-	var/master = data["donor"]
-	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_ready, master)
+	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_ready, donor)
 	if(prob(10))
 		M.DefaultCombatKnockdown(20)
 		to_chat(M, "<span class='warning'>Your body cramps up</span>")

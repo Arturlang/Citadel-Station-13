@@ -30,9 +30,10 @@
 	H.left_eye_color = "f00"
 	H.right_eye_color = "f00"
 	H.update_body()
-	H.extra_stamina += 50
+	if(H.physiology.stamina_buffer_mod == 1) //Let's not fucking fuck up something else if something else is changing this
+		H.physiology.stamina_buffer_mod = 0.5
 	while(ContinueActive(owner))
-		H.adjustStaminaLoss(20)
+		H.adjustStaminaLoss(50)
 		if(!H.jitteriness)
 			H.Jitter(10)
 		sleep(11)
@@ -40,7 +41,9 @@
 /datum/action/bloodsucker/vassal/lesser_fortitude/DeactivatePower()
 	..()
 	var/mob/living/carbon/human/H = owner
-	H.extra_stamina -= 50
+	H.update_body()
+	if(H.physiology.stamina_buffer_mod == 0.5)
+		H.physiology.stamina_buffer_mod = 1
 	H.left_eye_color = initial_left_eye_color
 	H.right_eye_color = initial_right_eye_color
 	H.update_body()

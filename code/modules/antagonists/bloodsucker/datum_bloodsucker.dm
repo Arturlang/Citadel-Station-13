@@ -199,10 +199,11 @@
 		var/mob/living/carbon/human/H = owner.current
 		var/datum/species/S = H.dna.species
 		// Make Changes
-		owner.current.extra_stamina += 200
 		H.physiology.brute_mod *= 0.8
 		H.physiology.cold_mod = 0
-		H.physiology.stun_mod *= 0.5
+		H.physiology.stun_mod *= 0.8
+		H.physiology.stamina_buffer_mod = 0.5
+		H.physiology.stamina_mod = 0.5
 		H.physiology.siemens_coeff *= 0.75 	//base electrocution coefficient  1
 		S.punchdamagelow += 2      //lowest possible punch damage   0
 		S.punchdamagehigh += 2      //highest possible punch damage	 9
@@ -322,7 +323,6 @@
 		var/datum/species/S = H.dna.species
 		S.punchdamagelow += 0.5
 		S.punchdamagehigh += 0.5    // NOTE: This affects the hitting power of Brawn.
-		H.extra_stamina += 50
 	// More Health
 	owner.current.setMaxHealth(owner.current.maxHealth + 10)
 	// Vamp Stats
