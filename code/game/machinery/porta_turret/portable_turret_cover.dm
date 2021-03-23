@@ -12,6 +12,10 @@
 	max_integrity = 80
 	var/obj/machinery/porta_turret/parent_turret = null
 
+/obj/machinery/porta_turret_cover/examine(mob/user)
+	if(parent_turret)
+		parent_turret.examine(user)
+
 /obj/machinery/porta_turret_cover/Destroy()
 	if(parent_turret)
 		parent_turret.cover = null
@@ -37,34 +41,8 @@
 
 
 /obj/machinery/porta_turret_cover/attackby(obj/item/I, mob/user, params)
-	if(I.tool_behaviour == TOOL_WRENCH && !parent_turret.on)
-		if(parent_turret.raised)
-			return
-
-		if(!parent_turret.anchored)
-			parent_turret.setAnchored(TRUE)
-			to_chat(user, "<span class='notice'>You secure the exterior bolts on the turret.</span>")
-			parent_turret.invisibility = 0
-			parent_turret.update_icon()
-		else
-			parent_turret.setAnchored(FALSE)
-			to_chat(user, "<span class='notice'>You unsecure the exterior bolts on the turret.</span>")
-			parent_turret.invisibility = INVISIBILITY_MAXIMUM
-			parent_turret.update_icon()
-			qdel(src)
-
-	else if(I.GetID())
-		if(parent_turret.allowed(user))
-			parent_turret.locked = !parent_turret.locked
-			to_chat(user, "<span class='notice'>Controls are now [parent_turret.locked ? "locked" : "unlocked"].</span>")
-			updateUsrDialog()
-		else
-			to_chat(user, "<span class='notice'>Access denied.</span>")
-	else if(I.tool_behaviour == TOOL_MULTITOOL && !parent_turret.locked)
-		I.buffer = parent_turret
-		to_chat(user, "<span class='notice'>You add [parent_turret] to [I]'s buffer.</span>")
-	else
-		return ..()
+	if(parent_turret)
+		parent_turret.attackby(I, user, params)
 
 /obj/machinery/porta_turret_cover/attacked_by(obj/item/I, mob/user, attackchain_flags = NONE, damage_multiplier = 1)
 	return parent_turret.attacked_by(I, user)
@@ -82,13 +60,5 @@
 	. = 0
 
 /obj/machinery/porta_turret_cover/emag_act(mob/user)
-	. = ..()
-	if(parent_turret.obj_flags & EMAGGED)
-		return
-	to_chat(user, "<span class='notice'>You short out [parent_turret]'s threat assessment circuits.</span>")
-	visible_message("[parent_turret] hums oddly...")
-	parent_turret.obj_flags |= EMAGGED
-	parent_turret.on = 0
-	spawn(40)
-		parent_turret.on = 1
-	return TRUE
+	if(parent_turret)
+		parent_turret.emag_act(user)

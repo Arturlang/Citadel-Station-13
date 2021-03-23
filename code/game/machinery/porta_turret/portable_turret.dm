@@ -13,6 +13,13 @@
 #define TURRET_FLAG_SHOOT_BORGS			(1<<6)	// checks if it can shoot cyborgs
 #define TURRET_FLAG_SHOOT_HEADS			(1<<7)	// checks if it can shoot at heads of staff
 
+#define COMPLETELY_TRASHED 0
+#define CABLE_CUT 1
+#define CABLE_ADDED 2
+#define METAL_ADDED 3
+#define METAL_WELDED 4
+#define FULLY_REPAIRED 5
+
 /obj/machinery/porta_turret
 	name = "turret"
 	icon = 'icons/obj/turrets.dmi'
@@ -29,6 +36,8 @@
 	max_integrity = 160		//the turret's health
 	integrity_failure = 0.5
 	armor = list("melee" = 50, "bullet" = 30, "laser" = 30, "energy" = 30, "bomb" = 30, "bio" = 0, "rad" = 0, "fire" = 90, "acid" = 90)
+	var/being_interacted
+	var/build_step = FULLY_REPAIRED
 	/// Base turret icon state
 	var/base_icon_state = "standard"
 	/// Scan range of the turret for locating targets
@@ -109,16 +118,36 @@
 	spark_system.attach(src)
 
 	setup()
-	if(has_cover)
-		cover = new /obj/machinery/porta_turret_cover(loc)
-		cover.parent_turret = src
-		var/mutable_appearance/base = mutable_appearance('icons/obj/turrets.dmi', "basedark")
-		base.layer = NOT_HIGH_OBJ_LAYER
-		underlays += base
+	add_cover()
 	if(!has_cover)
 		INVOKE_ASYNC(src, .proc/popUp)
 
-/obj/machinery/porta_turret/proc/toggle_on(var/set_to)
+/obj/machinery/porta_turret/proc/add_cover()
+	if(!has_cover)
+		return
+	cover = new /obj/machinery/porta_turret_cover(loc)
+	cover.parent_turret = src
+	var/mutable_appearance/base = mutable_appearance('icons/obj/turrets.dmi', "basedark")
+	base.layer = NOT_HIGH_OBJ_LAYER
+	underlays += base
+
+/obj/machinery/porta_turret/examine(mob/user)
+	. = ..()
+	. += "<span class='notice'>Wrench the bolts while it's off to unsecure it.</span>"
+	if(stat & BROKEN)
+		switch(build_step)
+			if(COMPLETELY_TRASHED)
+				. += "<span class='notice'>Cut out the damaged wire to repair or crowbar out the damaged parts to dismantle it.</span>"
+			if(CABLE_CUT)
+				. += "<span class='notice'>Add some new cabling to replace the damaged cabling.</span>"
+			if(CABLE_ADDED)
+				. += "<span class='notice'>Add some metal to replace the damaged hull.</span>"
+			if(METAL_ADDED)
+				. += "<span class='notice'>Secure the metal to the turret's hull with a welder</span>"
+			if(METAL_WELDED)
+				. += "<span class='notice'>Screwdriver the cover to finish repairing it.</span>"
+
+/obj/machinery/porta_turret/proc/toggle_on(set_to)
 	var/current = on
 	if (!isnull(set_to))
 		on = set_to
@@ -279,49 +308,74 @@
 	if(!anchored || (stat & BROKEN) || !powered())
 		update_icon()
 		remove_control()
+	if(!always_up)
+		popDown()
 	check_should_process()
 
+/obj/machinery/porta_turret/proc/reset_cooldown()
+	being_interacted = FALSE
+
 /obj/machinery/porta_turret/attackby(obj/item/I, mob/user, params)
+	if(being_interacted)
+		return
+	being_interacted = TRUE //Spam prevention, so you can't spam repair
+	addtimer(CALLBACK(src, .proc/reset_cooldown), 30, TIMER_UNIQUE)
+	if(!cover && has_cover && istype(I, /obj/item/stack/sheet/metal))
+		to_chat(user, "<span class='notice'>You begin adding a new cover to [src]...</span>")
+		if(I.use_tool(src, user, 10))
+			to_chat(user, "<span class='notice'>You add a new cover to [src].</span>")
+			add_cover()
+		if(build_step == CABLE_ADDED)
+			build_step ++
+		return
 	if(stat & BROKEN)
-		if(I.tool_behaviour == TOOL_CROWBAR)
-			//If the turret is destroyed, you can remove it with something
-			//that acts like a crowbar to try and salvage its components
-			to_chat(user, "<span class='notice'>You begin prying the metal coverings off...</span>")
-			if(I.use_tool(src, user, 20))
-				if(prob(70))
-					if(stored_gun)
-						stored_gun.forceMove(loc)
-						stored_gun = null
-					to_chat(user, "<span class='notice'>You remove the turret and salvage some components.</span>")
-					if(prob(50))
-						new /obj/item/stack/sheet/metal(loc, rand(1,4))
-					if(prob(50))
-						new /obj/item/assembly/prox_sensor(loc)
-				else
-					to_chat(user, "<span class='notice'>You remove the turret but did not manage to salvage anything.</span>")
-				qdel(src)
+		switch(build_step)
+			if(COMPLETELY_TRASHED)
+				switch(I.tool_behaviour)
+					if(TOOL_CROWBAR)
+						to_chat(user, "<span class='notice'>You begin prying the metal coverings off from [src]...</span>")
+						if(I.use_tool(src, user, 20))
+							if(stored_gun && prob(70))
+								stored_gun.forceMove(loc)
+								stored_gun = null
+							to_chat(user, "<span class='notice'>You dismantle [src]'s and salvage some components.</span>")
+						if(prob(50))
+							new /obj/item/stack/sheet/metal(loc, rand(1,4))
+						if(prob(50))
+							new /obj/item/assembly/prox_sensor(loc)
+						else
+							to_chat(user, "<span class='notice'>You dismantle [src]'s but did not manage to salvage anything.</span>")
+						qdel(src)
+						return
+					if(TOOL_WIRECUTTER)
+						to_chat(user, "<span class='notice'>You begin cutting out [src]'s broken wiring...</span>")
+						if(I.use_tool(src, user, 40))
+							to_chat(user, "<span class='notice'>You remove [src]'s broken wiring.</span>")
+							build_step ++
+						return
+			if(CABLE_CUT)
+				if(istype(I, /obj/item/stack/cable_coil))
+					to_chat(user, "<span class='notice'>You begin replacing [src]'s broken wiring...</span>")
+					if(I.use_tool(src, user, 20, 5))
+						build_step ++
 				return
-
-	else if((I.tool_behaviour == TOOL_WRENCH) && (!on))
-		if(raised)
-			return
-
-		//This code handles moving the turret around. After all, it's a portable turret!
-		if(!anchored && !isinspace())
-			setAnchored(TRUE)
-			invisibility = INVISIBILITY_MAXIMUM
-			update_icon()
-			to_chat(user, "<span class='notice'>You secure the exterior bolts on the turret.</span>")
-			if(has_cover)
-				cover = new /obj/machinery/porta_turret_cover(loc) //create a new turret. While this is handled in process(), this is to workaround a bug where the turret becomes invisible for a split second
-				cover.parent_turret = src //make the cover's parent src
-		else if(anchored)
-			setAnchored(FALSE)
-			to_chat(user, "<span class='notice'>You unsecure the exterior bolts on the turret.</span>")
-			power_change()
-			invisibility = 0
-			qdel(cover) //deletes the cover, and the turret instance itself becomes its own cover.
-
+			if(METAL_ADDED)
+				if(I.tool_behaviour == TOOL_WELDER)
+					to_chat(user, "<span class='notice'>You begin welding the metal to [src]'s hull...</span>")
+					if(I.use_tool(src, user, 30, 5))
+						to_chat(user, "<span class='notice'>You weld the metal to [src]'s hull.</span>")
+						build_step ++
+				return
+			if(METAL_WELDED)
+				if(I.tool_behaviour == TOOL_SCREWDRIVER)
+					to_chat(user, "<span class='notice'>You begin screwing down the [src]...</span>")
+					if(I.use_tool(src, user, 10))
+						to_chat(user, "<span class='notice'>You weld the metal to [src]'s hull.</span>")
+						build_step ++
+						stat &= BROKEN
+						power_change()
+						invisibility = initial(invisibility)
+				return
 	else if(I.GetID())
 		//Behavior lock/unlock mangement
 		if(allowed(user))
@@ -329,13 +383,54 @@
 			to_chat(user, "<span class='notice'>Controls are now [locked ? "locked" : "unlocked"].</span>")
 		else
 			to_chat(user, "<span class='alert'>Access denied.</span>")
+		return
 	else if(I.tool_behaviour == TOOL_MULTITOOL && !locked)
 		if(!multitool_check_buffer(user, I))
 			return
 		I.buffer = src
 		to_chat(user, "<span class='notice'>You add [src] to [I]'s buffer.</span>")
-	else
-		return ..()
+		return
+	switch(I.tool_behaviour)
+		if(TOOL_WRENCH)
+			if(raised || on)
+				return
+			//This code handles moving the turret around. After all, it's a portable turret!
+			if(!anchored && !isinspace())
+				setAnchored(TRUE)
+				invisibility = INVISIBILITY_MAXIMUM
+				update_icon()
+				to_chat(user, "<span class='notice'>You secure the exterior bolts on the [src].</span>")
+				if(has_cover)
+					cover = new /obj/machinery/porta_turret_cover(loc) //create a new turret. While this is handled in process(), this is to workaround a bug where the turret becomes invisible for a split second
+					cover.parent_turret = src //make the cover's parent src
+				return
+			else if(anchored)
+				setAnchored(FALSE)
+				to_chat(user, "<span class='notice'>You unsecure the exterior bolts on the [src].</span>")
+				power_change()
+				invisibility = 0
+				qdel(cover) //deletes the cover, and the turret instance itself becomes its own cover.
+				return
+
+		if(TOOL_WELDER)
+			if(user.a_intent == INTENT_HELP)
+				if(has_cover && !cover)
+					to_chat(user, "<span class='notice'>This [src] has lost it's cover, the cover has to be replaced before it can be repaired</span>")
+					return
+				if(obj_integrity < max_integrity)
+					if(!I.tool_start_check(user))
+						return
+					user.visible_message("[user] is welding the turret.", \
+						"<span class='notice'>You begin repairing the [src]...</span>", \
+						"<span class='italics'>You hear welding.</span>")
+					if(I.use_tool(src, user, 40, 5, 100))
+						obj_integrity = max_integrity
+						user.visible_message("[user] has fully repaired the [src].", \
+									"<span class='notice'>You fully repair the [src].</span>")
+				else
+					to_chat(user, "<span class='notice'>The [src] doesn't need repairing.</span>")
+				return
+	return ..()
 
 /obj/machinery/porta_turret/emag_act(mob/user)
 	if(obj_flags & EMAGGED)
@@ -391,27 +486,13 @@
 		invisibility = 0
 		spark_system.start()	//creates some sparks because they look cool
 		qdel(cover)	//deletes the cover - no need on keeping it there!
+		build_step = COMPLETELY_TRASHED
 
 //turret healing
 /obj/machinery/porta_turret/examine(mob/user)
 	. = ..()
 	if(obj_integrity < max_integrity)
 		. += "<span class='notice'>[src] is damaged, use a lit welder to fix it.</span>"
-
-/obj/machinery/porta_turret/welder_act(mob/living/user, obj/item/I)
-	. = TRUE
-	if(cover && obj_integrity < max_integrity)
-		if(!I.tool_start_check(user, amount=0))
-			return
-		user.visible_message("[user] is welding the turret.", \
-						"<span class='notice'>You begin repairing the turret...</span>", \
-						"<span class='italics'>You hear welding.</span>")
-		if(I.use_tool(src, user, 40, volume=50))
-			obj_integrity = max_integrity
-			user.visible_message("[user.name] has repaired [src].", \
-								"<span class='notice'>You finish repairing the turret.</span>")
-	else
-		to_chat(user, "<span class='notice'>The turret doesn't need repairing.</span>")
 
 /obj/machinery/porta_turret/process()
 	//the main machinery process
@@ -1176,3 +1257,10 @@
 			if(istype(P, /obj/item/projectile/beam/lasertag/bluetag))
 				toggle_on(FALSE)
 				addtimer(CALLBACK(src, .proc/toggle_on, TRUE), 10 SECONDS)
+
+#undef COMPLETELY_TRASHED
+#undef CABLE_CUT
+#undef CABLE_ADDED
+#undef METAL_ADDED
+#undef METAL_WELDED
+#undef FULLY_REPAIRED
