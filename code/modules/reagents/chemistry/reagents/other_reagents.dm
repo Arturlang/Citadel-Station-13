@@ -193,7 +193,7 @@
 //Bloodsucker Vitae
 /datum/reagent/blood/vitae
 	taste_description = "honeyed ash"
-	data = list("donor"=null,"viruses"=null,"blood_DNA"=null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type"= null,"resistances"=null,"trace_chem"=null,"mind"=null,"ckey"=null,"gender"=null,"real_name"=null,"cloneable"=null,"factions"=null,"quirks"=null)
+	data = list("donor" = null,"viruses" = null,"blood_DNA" = null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type" = null,"resistances" = null,"trace_chem" = null,"mind" = null,"ckey" = null,"gender" = null,"real_name" = null,"cloneable" = null,"factions" = null,"quirks" = null)
 	taste_mult = 10
 	color = BLOOD_COLOR_VITAE
 	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
@@ -201,29 +201,34 @@
 	var/punch_boosted
 	var/mob/living/donor
 
-/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
-	donor = data["donor"]
-
 /datum/reagent/blood/vitae/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
 	addiction_threshold = 0
 	if(!L.mind && !donor)
 		return ..()
-	var/datum/antagonist/bloodsucker/B = donor.mind
+	var/datum/antagonist/bloodsucker/B = donor.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 	if(!AmBloodsucker(donor))
 		return ..()
 	if(AmBloodsucker(L) && iscarbon(L))
 		var/mob/living/carbon/C = L
-		AddBlood(C, reac_volume)
+		AddBlood(C, reac_volume) //The AddBlood proc requires a carbon
+		return
+	if(L.stat == DEAD && !L.blood_volume)
+		attempt_embrace(L, reac_volume)
 		return
 	if(!AmVassal(L) && method == INGEST && !addiction_stage && reac_volume >= 5)
 		addiction_threshold = 5
 		return
-
 	if(addiction_stage == 3 && B.attempt_turn_vassal(L))
 		holder.del_reagent(src)
 	if(addiction_stage < 0)
 		addiction_stage = 1
 		addiction_stage1_end += reac_volume
+
+/datum/reagent/blood/vitae/proc/attempt_embrace(mob/living/L, reac_volume)
+	var/datum/antagonist/bloodsucker/B = donor.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
+	if(B.bloodsucker_level >= 3  && B.bloodsucker_level_unspent && reac_volume >= 50)
+		L.mind.add_antag_datum(/datum/antagonist/bloodsucker)
+		holder.del_reagent(src)
 
 
 /datum/reagent/blood/vitae/on_mob_life(mob/living/carbon/C)
@@ -252,6 +257,8 @@
 
 
 /datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
+	if(!donor)
+		donor = data["donor"]
 	if(!L && !L.mind)
 		return
 	if(AmVassal(L) || AmBloodsucker(L) && donor != L) //A reason for diableria AND vassal-master interaction

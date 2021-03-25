@@ -96,13 +96,9 @@
 	if(C.mind)
 		var/datum/antagonist/bloodsucker/bloodsucker = C.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 		if(bloodsucker)
-			// If DEAD or TORPID...kill vamp!
-			if(C.StakeCanKillMe()) // NOTE: This is the ONLY time a staked Torpid vamp dies.
-				bloodsucker.FinalDeath()
-				return
-			else
-				to_chat(target, "<span class='userdanger'>You have been staked! Your powers are useless, your death forever, while it remains in place.</span>")
-				to_chat(user, "<span class='warning'>You missed [C.p_their(TRUE)]'s heart! It would be easier if [C.p_they(TRUE)] weren't struggling so much.</span>")
+			var/datum/brain_trauma/severe/paralysis/paraplegic/T = new(full)
+			C.gain_trauma(T, TRAUMA_RESILIENCE_ABSOLUTE) //Just oof.
+			to_chat(C, "<span class='danger'>You've been staked! You won't be able to do ANYTHING until it's taken out of your heart!</span>")
 
 // Can this target be staked? If someone stands up before this is complete, it fails. Best used on someone stationary.
 /mob/living/carbon/proc/can_be_staked()
