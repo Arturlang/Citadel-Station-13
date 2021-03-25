@@ -37,6 +37,7 @@
 	max_integrity = 30
 	//embedded_fall_pain_multiplier
 	var/staketime = 120		// Time it takes to embed the stake into someone's chest.
+	var/datum/brain_trauma/severe/paralysis/paraplegic/T
 
 /obj/item/stake/basic
 	name = "wooden stake"
@@ -95,10 +96,15 @@
 	B.receive_damage(w_class * embedding["pain_mult"])
 	if(C.mind)
 		var/datum/antagonist/bloodsucker/bloodsucker = C.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
-		if(bloodsucker)
-			var/datum/brain_trauma/severe/paralysis/paraplegic/T = new(full)
+		if(bloodsucker && )
+			T = new("full")
 			C.gain_trauma(T, TRAUMA_RESILIENCE_ABSOLUTE) //Just oof.
 			to_chat(C, "<span class='danger'>You've been staked! You won't be able to do ANYTHING until it's taken out of your heart!</span>")
+
+/obj/item/stake/unembedded(atom/embedded_target)
+	var/mob/living/carbon/C = embedded_target
+	C.cure_trauma_type(T, TRAUMA_RESILIENCE_ABSOLUTE)
+	..()
 
 // Can this target be staked? If someone stands up before this is complete, it fails. Best used on someone stationary.
 /mob/living/carbon/proc/can_be_staked()
