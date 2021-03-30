@@ -24,7 +24,7 @@
 	item_state = "wood" // In-hand Icon
 	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi' // File for in-hand icon
 	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
-	attack_verb = list("staked")
+	attack_verb = list("staked", "poked", "stabbed")
 	slot_flags = ITEM_SLOT_BELT
 	w_class = WEIGHT_CLASS_SMALL
 	hitsound = 'sound/weapons/bladeslice.ogg'
@@ -36,8 +36,9 @@
 	obj_integrity = 30
 	max_integrity = 30
 	//embedded_fall_pain_multiplier
-	var/staketime = 120		// Time it takes to embed the stake into someone's chest.
+	var/time_to_stake = 120		// Time it takes to embed the stake into someone's chest.
 	var/datum/brain_trauma/severe/paralysis/paraplegic/T
+	var/blessed
 
 /obj/item/stake/basic
 	name = "wooden stake"
@@ -81,7 +82,7 @@
 	// Make Attempt...
 	to_chat(user, "<span class='notice'>You put all your weight into embedding the stake into [target]'s chest...</span>")
 	playsound(user, 'sound/magic/Demon_consume.ogg', 50, 1)
-	if(!do_mob(user, C, staketime, 0, 1, extra_checks=CALLBACK(C, /mob/living/carbon/proc/can_be_staked))) // user / target / time / uninterruptable / show progress bar / extra checks
+	if(!do_mob(user, C, time_to_stake, 0, 1, extra_checks=CALLBACK(C, /mob/living/carbon/proc/can_be_staked))) // user / target / time / uninterruptable / show progress bar / extra checks
 		return
 	// Drop & Embed Stake
 	user.visible_message("<span class='danger'>[user.name] drives the [src] into [target]'s chest!</span>", \
@@ -96,10 +97,24 @@
 	B.receive_damage(w_class * embedding["pain_mult"])
 	if(C.mind)
 		var/datum/antagonist/bloodsucker/bloodsucker = C.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
-		if(bloodsucker && )
+		if(bloodsucker && C.StakeCanKillMe())
 			T = new("full")
 			C.gain_trauma(T, TRAUMA_RESILIENCE_ABSOLUTE) //Just oof.
-			to_chat(C, "<span class='danger'>You've been staked! You won't be able to do ANYTHING until it's taken out of your heart!</span>")
+			to_chat(C, "<span class='danger'>You've been staked in your heart! You won't be able to do ANYTHING until it's taken out of your heart!</span>")
+
+/obj/item/stake/embedded(atom/embedded_target)
+	var/mob/living/carbon/C = embedded_target
+	if(blessed && !C.StakeCanKillMe())
+		START_PROCESSING(SSobj, src)
+
+/obj/item/stake/process(delta_time)
+	if(DT_PROB(5, delta_time))
+		if(iscarbon(loc))
+			var/mob/living/carbon/C = loc
+			to_chat(C, "<span class='danger'>The blessed stake in your chest is setting your unholy flesh on fire! Get it out before it burns you to ashes!</span>")
+			C.fire_stacks ++
+			C.IgniteMob()
+
 
 /obj/item/stake/unembedded(atom/embedded_target)
 	var/mob/living/carbon/C = embedded_target
@@ -123,7 +138,7 @@
 	obj_integrity = 120
 	max_integrity = 120
 
-	staketime = 80
+	time_to_stake = 80
 
 /obj/item/stake/hardened/silver
 	name = "silver stake"
@@ -137,7 +152,7 @@
 	obj_integrity = 300
 	max_integrity = 300
 
-	staketime = 60
+	time_to_stake = 60
 
 // Convert back to Silver
 /obj/item/stake/hardened/silver/attackby(obj/item/I, mob/user, params)
