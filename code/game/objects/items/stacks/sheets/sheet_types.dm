@@ -306,7 +306,7 @@ GLOBAL_LIST_INIT(wood_recipes, list ( \
 		if(!do_after(user, 80, TRUE, src))
 			return
 		// Make Stake
-		var/obj/item/stake/basic/new_item = new(user.loc)
+		var/obj/item/stake/new_item = new(user.loc)
 		user.visible_message("[user] finishes carving a stake out of [src].", \
 				 "<span class='notice'>You finish carving a stake out of [src].</span>")
 		// Prepare to Put in Hands (if holding wood)

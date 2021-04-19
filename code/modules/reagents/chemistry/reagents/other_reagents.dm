@@ -192,6 +192,7 @@
 
 //Bloodsucker Vitae
 /datum/reagent/blood/vitae
+	//name = "vitae"	This is a disguised reagent, looking ALMOST like blood, acting like it, except in certain cases.
 	taste_description = "honeyed ash"
 	data = list("donor" = null,"viruses" = null,"blood_DNA" = null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type" = null,"resistances" = null,"trace_chem" = null,"mind" = null,"ckey" = null,"gender" = null,"real_name" = null,"cloneable" = null,"factions" = null,"quirks" = null)
 	taste_mult = 10
@@ -215,7 +216,7 @@
 	if(L.stat == DEAD && !L.blood_volume)
 		attempt_embrace(L, reac_volume)
 		return
-	if(!AmVassal(L) && method == INGEST && !addiction_stage && reac_volume >= 5)
+	if(!AmVassal(L) && method == INGEST && !addiction_stage)
 		addiction_threshold = 5
 		return
 	if(addiction_stage == 3 && B.attempt_turn_vassal(L))
