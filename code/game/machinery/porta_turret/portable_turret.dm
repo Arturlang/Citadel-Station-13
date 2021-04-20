@@ -392,7 +392,7 @@
 		spark_system.start()	//creates some sparks because they look cool
 		qdel(cover)	//deletes the cover - no need on keeping it there!
 
-//turret healing
+//turret repair
 /obj/machinery/porta_turret/examine(mob/user)
 	. = ..()
 	if(obj_integrity < max_integrity)
