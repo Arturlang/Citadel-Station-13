@@ -196,7 +196,7 @@
 	taste_description = "honeyed ash"
 	data = list("donor" = null,"viruses" = null,"blood_DNA" = null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type" = null,"resistances" = null,"trace_chem" = null,"mind" = null,"ckey" = null,"gender" = null,"real_name" = null,"cloneable" = null,"factions" = null,"quirks" = null)
 	taste_mult = 10
-	ph = 8
+	pH = 8
 	color = BLOOD_COLOR_VITAE
 	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
 	addiction_stage3_end = 100 //Just for that extra suffering
@@ -205,7 +205,7 @@
 
 /datum/reagent/blood/vitae/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
 	addiction_threshold = 0
-	if(!L.mind && !donor ! && !iscarbon(L)) //Sanity, and we'd rather not fuck with noncarbons
+	if(!L.mind && !donor && !iscarbon(L)) //Sanity, and we'd rather not fuck with noncarbons
 		return ..()
 	var/datum/antagonist/bloodsucker/B = donor.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 	if(!AmBloodsucker(donor))
@@ -256,16 +256,19 @@
 		C.dna.species.punchdamagelow -= 10
 	..()
 
-/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
+/datum/reagent/blood/vitae/New()
+	..()
 	if(!donor)
 		donor = data["donor"]
+
+/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
 	if(!L && !L.mind)
 		return
 	if(AmVassal(L) || AmBloodsucker(L) && donor != L) //A reason for diableria AND vassal-master interaction
 		to_chat(L, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
 
 /datum/reagent/blood/vitae/addiction_act_stage1(mob/living/M) //The first sip is always the best.
-	throw_alert("blood_rage", /obj/screen/alert/blood_rage) //todo, make this
+	M.throw_alert("blood_rage", /obj/screen/alert/blood_rage) //todo, make this
 	M.overlay_fullscreen("vitaeaddict", /obj/screen/fullscreen/crit/vision, 5)
 	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_start)
 	M.heal_overall_damage(10, 10 , 20, FALSE, FALSE)
