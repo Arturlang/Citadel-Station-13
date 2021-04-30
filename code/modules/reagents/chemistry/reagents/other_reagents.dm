@@ -281,7 +281,7 @@
 		if(C.handcuffed)
 			var/obj/O = C.get_item_by_slot(SLOT_HANDCUFFED)
 			qdel(O)
-			C.visible_message(C, "<span class='warning'>[C] breaks the [C.p_their()] [O] with their bare hands!</span>", \
+			C.visible_message("<span class='warning'>[C] breaks the [C.p_their()] [O] with their bare hands!</span>", \
 			"<span class='warning'>You break the [O] with your newfound strenght!</span>")
 		if(!punch_boosted)
 			punch_boosted = TRUE
