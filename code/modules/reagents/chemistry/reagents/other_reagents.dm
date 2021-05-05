@@ -192,39 +192,45 @@
 
 //Bloodsucker Vitae
 /datum/reagent/blood/vitae
+	//name = "vitae"	This is a disguised reagent, looking ALMOST like blood, acting like it, except in certain cases.
 	taste_description = "honeyed ash"
-	data = list("donor"=null,"viruses"=null,"blood_DNA"=null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type"= null,"resistances"=null,"trace_chem"=null,"mind"=null,"ckey"=null,"gender"=null,"real_name"=null,"cloneable"=null,"factions"=null,"quirks"=null)
+	data = list("donor" = null,"viruses" = null,"blood_DNA" = null, "bloodcolor" = BLOOD_COLOR_VITAE, "blood_type" = null,"resistances" = null,"trace_chem" = null,"mind" = null,"ckey" = null,"gender" = null,"real_name" = null,"cloneable" = null,"factions" = null,"quirks" = null)
 	taste_mult = 10
+	pH = 8
 	color = BLOOD_COLOR_VITAE
 	value = REAGENT_VALUE_GLORIOUS //Incredibly valuable, but how the hell are you going to harvest it from a vampire consistently?
 	addiction_stage3_end = 100 //Just for that extra suffering
 	var/punch_boosted
 	var/mob/living/donor
 
-/datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
-	donor = data["donor"]
-
 /datum/reagent/blood/vitae/reaction_mob(mob/living/L, method = TOUCH, reac_volume)
 	addiction_threshold = 0
-	if(!L.mind && !donor)
+	if(!L.mind && !donor && !iscarbon(L)) //Sanity, and we'd rather not fuck with noncarbons
 		return ..()
-	var/datum/antagonist/bloodsucker/B = donor.mind
+	var/datum/antagonist/bloodsucker/B = donor.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
 	if(!AmBloodsucker(donor))
 		return ..()
-	if(AmBloodsucker(L) && iscarbon(L))
+	if(AmBloodsucker(L))
 		var/mob/living/carbon/C = L
-		AddBlood(C, reac_volume)
+		AddBlood(C, reac_volume) //The AddBlood proc requires a carbon
 		return
-	if(!AmVassal(L) && method == INGEST && !addiction_stage && reac_volume >= 5)
+	if(L.stat == DEAD && !L.blood_volume) //Bring back the dead, as a bloodsucker if they lack blood
+		attempt_embrace(L, reac_volume)
+		return
+	if(!AmVassal(L) && method == INGEST && !addiction_stage) //Make it addictive if the victim isn't a vassal and it was ingested
 		addiction_threshold = 5
 		return
-
-	if(addiction_stage == 3 && B.attempt_turn_vassal(L))
+	if(addiction_stage == 3 && B.attempt_turn_vassal(L)) // At the last stage of the addiction, before it dissapears, make them a vassal
 		holder.del_reagent(src)
-	if(addiction_stage < 0)
+	if(addiction_stage < 0) //Reset the addiction back to stage one and increase the duration, risky but it's a kind of power drug
 		addiction_stage = 1
 		addiction_stage1_end += reac_volume
 
+/datum/reagent/blood/vitae/proc/attempt_embrace(mob/living/L, reac_volume)
+	var/datum/antagonist/bloodsucker/B = donor.mind.has_antag_datum(ANTAG_DATUM_BLOODSUCKER)
+	if(B.bloodsucker_level >= 3  && B.bloodsucker_level_unspent && reac_volume >= 50)
+		L.mind.add_antag_datum(/datum/antagonist/bloodsucker)
+		holder.del_reagent(src)
 
 /datum/reagent/blood/vitae/on_mob_life(mob/living/carbon/C)
 	if(!C.mind)
@@ -250,6 +256,10 @@
 		C.dna.species.punchdamagelow -= 10
 	..()
 
+/datum/reagent/blood/vitae/New()
+	..()
+	if(!donor)
+		donor = data["donor"]
 
 /datum/reagent/blood/vitae/on_mob_metabolize(mob/living/L)
 	if(!L && !L.mind)
@@ -258,6 +268,7 @@
 		to_chat(L, "<span class='warning'>You can feel vampiric power coursing through your veins!</span>")
 
 /datum/reagent/blood/vitae/addiction_act_stage1(mob/living/M) //The first sip is always the best.
+	M.throw_alert("blood_rage", /obj/screen/alert/blood_rage) //todo, make this
 	M.overlay_fullscreen("vitaeaddict", /obj/screen/fullscreen/crit/vision, 5)
 	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_start)
 	M.heal_overall_damage(10, 10 , 20, FALSE, FALSE)
@@ -270,7 +281,7 @@
 		if(C.handcuffed)
 			var/obj/O = C.get_item_by_slot(SLOT_HANDCUFFED)
 			qdel(O)
-			C.visible_message(C, "<span class='warning'>[C] breaks the [C.p_their()] [O] with their bare hands!</span>", \
+			C.visible_message("<span class='warning'>[C] breaks the [C.p_their()] [O] with their bare hands!</span>", \
 			"<span class='warning'>You break the [O] with your newfound strenght!</span>")
 		if(!punch_boosted)
 			punch_boosted = TRUE
@@ -278,8 +289,9 @@
 			C.dna.species.punchdamagelow += 10
 		if(!C.jitteriness)
 			C.jitteriness += 2
+	..()
 
-/datum/reagent/blood/vitae/addiction_act_stage2(mob/living/M)
+/datum/reagent/blood/vitae/addiction_act_stage2(mob/living/M) //Getting weaker, but not completely going down just yet
 	M.heal_overall_damage(5, 5 , 10, FALSE, FALSE)
 	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_need)
 	if(!HAS_TRAIT_FROM(M, TRAIT_STUNIMMUNE, "vitaeaddict"))
@@ -290,8 +302,9 @@
 		var/mob/living/carbon/C = M
 		if(!C.jitteriness)
 			C.jitteriness += 3
+	..()
 
-/datum/reagent/blood/vitae/addiction_act_stage3(mob/living/M)
+/datum/reagent/blood/vitae/addiction_act_stage3(mob/living/M) //Time for the comedown
 	SEND_SIGNAL(M, COMSIG_ADD_MOOD_EVENT, "vitaeaddict", /datum/mood_event/vitae_addiction_ready, donor)
 	if(prob(10))
 		M.DefaultCombatKnockdown(20)

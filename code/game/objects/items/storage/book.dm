@@ -179,7 +179,7 @@ GLOBAL_LIST_INIT(bibleitemstates, list("bible", "koran", "scrapbook", "bible",  
 		if(user.mind && (user.mind.isholy))
 			for(var/obj/effect/rune/R in orange(2,user))
 				R.invisibility = 0
-	if(user.mind && (user.mind.isholy))
+	else if(user.mind && (user.mind.isholy))
 		if(A.reagents && A.reagents.has_reagent(/datum/reagent/water)) // blesses all the water in the holder
 			to_chat(user, "<span class='notice'>You bless [A].</span>")
 			var/water2holy = A.reagents.get_reagent_amount(/datum/reagent/water)
@@ -224,6 +224,13 @@ GLOBAL_LIST_INIT(bibleitemstates, list("bible", "koran", "scrapbook", "bible",  
 				SS.release_shades(user)
 			user.visible_message("<span class='notice'>[user] has purified the [SS]!</span>")
 			qdel(SS)
+	else if(istype(A, /obj/item/stake)) //These really should be made into it's own proc on item, as is it's a lotta copypasta
+		to_chat(user, "<span class='notice'>You begin to bless the [A]</span>")
+		if(do_after(user, 40, target = A))
+			playsound(src,'sound/effects/pray_chaplain.ogg', 60, TRUE)
+			var/obj/item/stake/S = A
+			S.blessed = TRUE
+			S.name = "Blessed [S]"
 
 /obj/item/storage/book/bible/booze
 	desc = "To be applied to the head repeatedly."

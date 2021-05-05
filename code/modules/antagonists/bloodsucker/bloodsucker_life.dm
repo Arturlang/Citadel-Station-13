@@ -85,6 +85,11 @@
 		return FALSE
 	if(istype(owner.current.get_item_by_slot(SLOT_NECK), /obj/item/clothing/neck/garlic_necklace))
 		return FALSE
+	/*
+	owner.current.adjustStaminaLoss(-1.5 + (actual_regen * -7) * mult, 0) // Humans lose stamina damage really quickly. Vamps should heal more.
+	owner.current.adjustCloneLoss(-0.1 * (actual_regen * 2) * mult, 0)
+	owner.current.adjustOrganLoss(ORGAN_SLOT_BRAIN, -1 * (actual_regen * 4) * mult)
+	*/
 	if(iscarbon(owner.current)) // Damage Heal: Do I have damage to ANY bodypart?
 		var/mob/living/carbon/C = owner.current
 		var/costMult = 1 // Coffin makes it cheaper
@@ -148,6 +153,7 @@
 	C.cure_nearsighted(EYE_DAMAGE)
 	C.set_blindness(0)
 	C.set_blurriness(0)
+	C.cloneloss = 0
 	C.update_tint()
 	C.update_sight()
 	for(var/thing in C.all_wounds)

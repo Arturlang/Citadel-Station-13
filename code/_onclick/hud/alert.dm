@@ -369,6 +369,11 @@ or shoot a gun to move around via Newton's 3rd Law of Motion."
 	icon_state = "blobbernaut_nofactory"
 	alerttooltipstyle = "blob"
 
+//Bloodsuckers
+
+/obj/screen/alert/blood_rage
+	name = "Blood Rage"
+	desc = "You feel inhuman blood coursing through your blood giving you great power."
 // BLOODCULT
 
 /obj/screen/alert/bloodsense
