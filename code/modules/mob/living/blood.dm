@@ -41,7 +41,7 @@
 	if(bodytemperature >= TCRYO && !(HAS_TRAIT(src, TRAIT_HUSK))) //cryosleep or husked people do not pump the blood.
 
 		//Blood regeneration if there is some space
-		if(blood_volume < BLOOD_VOLUME_NORMAL && !HAS_TRAIT(src, TRAIT_NOHUNGER))
+		if(blood_volume < BLOOD_VOLUME_NORMAL && !HAS_TRAIT(src, TRAIT_NOHUNGER) && !HAS_TRAIT(src, TRAIT_NOMARROW))
 			var/nutrition_ratio = 0
 			switch(nutrition)
 				if(0 to NUTRITION_LEVEL_STARVING)
@@ -61,6 +61,9 @@
 
 		//Effects of bloodloss
 		var/word = pick("dizzy","woozy","faint")
+		if(AmBloodsucker(src) || isvampire(src))\
+			word = pick("hungry", "thirsty", "faint")
+
 		switch(blood_volume)
 			if(BLOOD_VOLUME_MAXIMUM to BLOOD_VOLUME_EXCESS)
 				if(prob(10))
@@ -76,11 +79,11 @@
 					to_chat(src, "<span class='warning'>You feel very [word].</span>")
 			if(BLOOD_VOLUME_SURVIVE to BLOOD_VOLUME_BAD)
 				adjustOxyLoss(5)
-				if(prob(15))
+				if(prob(15) && !AmBloodsucker(src))
 					Unconscious(rand(20,60))
 					to_chat(src, "<span class='warning'>You feel extremely [word].</span>")
 			if(-INFINITY to BLOOD_VOLUME_SURVIVE)
-				if(!HAS_TRAIT(src, TRAIT_NODEATH))
+				if(!HAS_TRAIT(src, TRAIT_NODEATH) && !AmBloodsucker(src))
 					death()
 
 		var/temp_bleed = 0
